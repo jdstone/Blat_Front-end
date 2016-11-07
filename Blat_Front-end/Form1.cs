@@ -19,8 +19,6 @@ namespace Blat_Front_end
         {
             InitializeComponent();
             this.AllowDrop = true;
-            //this.DragEnter += new DragEventHandler(Form1_DragEnter);
-            //this.DragDrop += new DragEventHandler(Form1_DragDrop);
             fileList.DragDrop += new DragEventHandler(fileList_DragDrop);
             fileList.DragEnter += new DragEventHandler(fileList_DragEnter);
             fileList.KeyDown += new KeyEventHandler(fileList_KeyDown);
@@ -30,28 +28,6 @@ namespace Blat_Front_end
         {
             
         }
-
-        /*
-        void Form1_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
-        }
-
-        void Form1_DragDrop(object sender, DragEventArgs e)
-        {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            foreach (string file in files)
-            {
-                label.Text += file + "\n";
-                Console.WriteLine(label);
-            }
-        }
-        */
-
-        /*private void fileList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            
-        }*/
 
         private void fileList_DragEnter(object sender, System.Windows.Forms.DragEventArgs e)
         {
@@ -75,11 +51,10 @@ namespace Blat_Front_end
             string extension = Path.GetExtension(filePath);
             switch (extension)
             {
-                case ".txt": case ".trc": case ".log": case ".csv": case ".tsv": case ".xls": case ".ini": case ".dct": case ".pdf":
+                case ".txt": case ".trc": case ".log": case ".csv": case ".tsv": case ".xls": case ".ini": case ".dct":
                     result = "text";
                     break;
-                // .zip
-                case ".z1p":
+                case ".z1p": // .zip
                     result = "binary";
                     break;
                 default:
@@ -90,9 +65,9 @@ namespace Blat_Front_end
             return result;
         }
 
-        private void buildBlatString()
+        private string buildBlatString()
         {
-            string args, attachArg, blatCmd;
+            string args;
             string attachmentText = "-attacht ";
             string attachmentBinary = "-attach ";
             string computername = Environment.GetEnvironmentVariable("computername");
@@ -119,40 +94,38 @@ namespace Blat_Front_end
                     }
                 }
             }
-            //Console.WriteLine(attachmentText + " " + attachmentBinary);
 
             args = "-from " + computername + "@domain.com -to " + recipientTextBox.Text + " -subject " + subjectTextBox.Text;
             if (attachmentText.Length > 9)
                 args += " " + attachmentText;
             if (attachmentBinary.Length > 8)
                 args += " " + attachmentBinary;
-            Console.WriteLine("Args: " + args);
-            //runBlat(args);
 
-            /*if (fileList.Items.Count <= 0)
-            {
-                Console.WriteLine("file list is empty");
-            }
-            else
-            {
-                Console.Write(fileList.Items.Count);
-            }*/
+            return args;
         }
 
         private void runBlat(string args)
         {
             Process p = new Process();
+            string output;
 
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            string path = @"filepath";
-            p.StartInfo.FileName = path + "blat.exe";
-            p.StartInfo.Arguments = args;
-            p.Start();
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-            p.Close();
-            Console.WriteLine(output);
+            try
+            {
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                string path = @"filepath";
+                p.StartInfo.FileName = path + "blat.exe";
+                p.StartInfo.Arguments = args;
+                p.Start();
+                output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                p.Close();
+                Console.WriteLine(output);
+            }
+            catch
+            {
+                Console.WriteLine("Fail");
+            }
         }
 
         private void fileList_KeyDown(object sender, KeyEventArgs e)
@@ -176,31 +149,11 @@ namespace Blat_Front_end
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void sendButton_Click(object sender, EventArgs e)
         {
-            buildBlatString();
-            //Console.Write(recipientTextBox.Text);
-            //ListBox.SelectedObjectCollection selectedItems = new ListBox.SelectedObjectCollection(fileList);
-            //selectedItems = fileList.SelectedItems;
-
-            //Console.Write(selectedItems[0].ToString());
-        }
-
-        private void testEmail()
-        {
-            string emailFrom = "email";
-            string emailTo = "email";
-            string subject = "subject goes here";
-            string body = "body in here...";
-            MailMessage emailMessage = new MailMessage();
-            emailMessage.From = new MailAddress("email");
-            //emailMessage.Attachments = new Attachment(@"filepath", "text/plain");
-            //emailMessage.Attachments.Add(att)
-            SmtpClient smtpClient = new SmtpClient("smtp.example.com", 111);
-            smtpClient.EnableSsl = true;
-            smtpClient.Credentials = new System.Net.NetworkCredential("username", "pass");
-
-            smtpClient.Send(emailFrom, emailTo, subject, body);
+            string args;
+            args = buildBlatString();
+            runBlat(args);
         }
     }
 }

@@ -35,7 +35,6 @@
             this.attachLabel = new System.Windows.Forms.Label();
             this.recipientTextBox = new System.Windows.Forms.TextBox();
             this.recipientLabel = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
             this.toNoteLabel = new System.Windows.Forms.Label();
             this.subjectLabel = new System.Windows.Forms.Label();
             this.subjectTextBox = new System.Windows.Forms.TextBox();
@@ -62,6 +61,7 @@
             this.sendButton.TabIndex = 1;
             this.sendButton.Text = "Send Email";
             this.sendButton.UseVisualStyleBackColor = false;
+            this.sendButton.Click += new System.EventHandler(this.sendButton_Click);
             // 
             // bodyTextBox
             // 
@@ -108,16 +108,6 @@
             this.recipientLabel.TabIndex = 6;
             this.recipientLabel.Text = "To";
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(420, 551);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 7;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // toNoteLabel
             // 
             this.toNoteLabel.AutoSize = true;
@@ -153,7 +143,6 @@
             this.Controls.Add(this.subjectTextBox);
             this.Controls.Add(this.subjectLabel);
             this.Controls.Add(this.toNoteLabel);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.recipientLabel);
             this.Controls.Add(this.recipientTextBox);
             this.Controls.Add(this.attachLabel);
@@ -178,7 +167,6 @@
         private System.Windows.Forms.Label attachLabel;
         private System.Windows.Forms.TextBox recipientTextBox;
         private System.Windows.Forms.Label recipientLabel;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label toNoteLabel;
         private System.Windows.Forms.Label subjectLabel;
         private System.Windows.Forms.TextBox subjectTextBox;
