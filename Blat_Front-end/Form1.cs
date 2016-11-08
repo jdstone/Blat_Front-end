@@ -65,6 +65,24 @@ namespace Blat_Front_end
             return result;
         }
 
+        private int isFileListEmpty()
+        {
+            int sad = 0;
+            return sad;
+        }
+
+        public void SetSelectedAllItems(ListBox listbox)
+        {
+            listbox.BeginUpdate();
+
+            for (int i = 0; i < listbox.Items.Count; i++)
+            {
+                listbox.SetSelected(i, true);
+            }
+
+            listbox.EndUpdate();
+        }
+
         private string buildBlatString()
         {
             string args;
@@ -90,10 +108,12 @@ namespace Blat_Front_end
                     }
                     else
                     {
-                        Console.WriteLine(determineFileType(selectedItems[i].ToString()));
+                        MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.");
                     }
                 }
             }
+
+            Console.WriteLine(fileList.SelectedIndex);
 
             args = "-from " + computername + "@domain.com -to " + recipientTextBox.Text + " -subject " + subjectTextBox.Text;
             if (attachmentText.Length > 9)
@@ -153,7 +173,15 @@ namespace Blat_Front_end
         {
             string args;
             args = buildBlatString();
-            runBlat(args);
+            if (recipientTextBox.Text != "")
+            {
+                SetSelectedAllItems(fileList);
+                runBlat(args);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a recipient");
+            }
         }
     }
 }
