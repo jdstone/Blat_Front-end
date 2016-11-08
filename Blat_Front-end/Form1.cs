@@ -39,10 +39,10 @@ namespace Blat_Front_end
 
         private void fileList_DragDrop(object sender, System.Windows.Forms.DragEventArgs e)
         {
-            string[] s = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            string[] str = (string[])e.Data.GetData(DataFormats.FileDrop, false);
             int i;
-            for (i = 0; i < s.Length; i++)
-                fileList.Items.Add(s[i]);
+            for (i = 0; i < str.Length; i++)
+                fileList.Items.Add(str[i]);
         }
 
         private string determineFileType(string filePath)
@@ -65,10 +65,15 @@ namespace Blat_Front_end
             return result;
         }
 
-        private int isFileListEmpty()
+        private bool isFileListEmpty()
         {
-            int sad = 0;
-            return sad;
+            if (fileList.SelectedIndex == -1)
+            {
+                Console.WriteLine("You didn't attach any files!");
+                return false;
+            }
+
+            return true;
         }
 
         public void SetSelectedAllItems(ListBox listbox)
@@ -112,8 +117,6 @@ namespace Blat_Front_end
                     }
                 }
             }
-
-            Console.WriteLine(fileList.SelectedIndex);
 
             args = "-from " + computername + "@domain.com -to " + recipientTextBox.Text + " -subject " + subjectTextBox.Text;
             if (attachmentText.Length > 9)
