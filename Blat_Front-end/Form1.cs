@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Net.Mail;
 
 namespace Blat_Front_end
 {
@@ -114,20 +113,23 @@ namespace Blat_Front_end
                     else
                     {
                         MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.");
+                        return "invalid";
                     }
                 }
             }
 
-            args = "-from " + computername + "@domain.com -to " + recipientTextBox.Text + " -subject " + subjectTextBox.Text;
+            args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to " + recipientTextBox.Text +
+                " -subject \"" + subjectTextBox.Text + "\"";
             if (attachmentText.Length > 9)
-                args += " " + attachmentText;
+                args += " \"" + attachmentText + "\"";
             if (attachmentBinary.Length > 8)
-                args += " " + attachmentBinary;
+                args += " \"" + attachmentBinary + "\"";
+
 
             return args;
         }
 
-        private void runBlat(string args)
+        private bool runBlat(string args)
         {
             Process p = new Process();
             string output;
@@ -136,19 +138,23 @@ namespace Blat_Front_end
             {
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardOutput = true;
-                string path = @"filepath";
-                p.StartInfo.FileName = path + "blat.exe";
+                p.StartInfo.FileName = 
+                  Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "sysnative", "blat.exe");
                 p.StartInfo.Arguments = args;
                 p.Start();
                 output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
                 p.Close();
                 Console.WriteLine(output);
+
+                return true;
             }
             catch
             {
-                Console.WriteLine("Fail");
+                Console.WriteLine("Could not find file.");
             }
+
+            return false;
         }
 
         private void fileList_KeyDown(object sender, KeyEventArgs e)
@@ -175,11 +181,23 @@ namespace Blat_Front_end
         private void sendButton_Click(object sender, EventArgs e)
         {
             string args;
+            SetSelectedAllItems(fileList);
             args = buildBlatString();
+
             if (recipientTextBox.Text != "")
             {
-                SetSelectedAllItems(fileList);
-                runBlat(args);
+                if (args != "invalid")
+                {
+                    if (runBlat(args))
+                    {
+                        MessageBox.Show("Message sent successfully");
+                    }
+                    else
+                    {
+                        MessageBox.Show("An error occurred and the message could not be sent." +
+                                        "\nPlease make sure Blat.exe is installed in the System32 folder.");
+                    }
+                }
             }
             else
             {
