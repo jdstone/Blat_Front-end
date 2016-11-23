@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Blat_Front_end
@@ -28,7 +21,7 @@ namespace Blat_Front_end
             
         }
 
-        private void fileList_DragEnter(object sender, System.Windows.Forms.DragEventArgs e)
+        private void fileList_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.All;
@@ -36,7 +29,7 @@ namespace Blat_Front_end
                 e.Effect = DragDropEffects.None;
         }
 
-        private void fileList_DragDrop(object sender, System.Windows.Forms.DragEventArgs e)
+        private void fileList_DragDrop(object sender, DragEventArgs e)
         {
             string[] str = (string[])e.Data.GetData(DataFormats.FileDrop, false);
             int i;
@@ -68,11 +61,10 @@ namespace Blat_Front_end
         {
             if (fileList.SelectedIndex == -1)
             {
-                Console.WriteLine("You didn't attach any files!");
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public void SetSelectedAllItems(ListBox listbox)
@@ -132,7 +124,7 @@ namespace Blat_Front_end
         private bool runBlat(string args)
         {
             Process p = new Process();
-            string output;
+            string output = null;
 
             try
             {
@@ -145,13 +137,29 @@ namespace Blat_Front_end
                 output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
                 p.Close();
-                Console.WriteLine(output);
+                using (StreamWriter w = File.AppendText("blat_front-end_log.txt"))
+                {
+                    if (output != null)
+                    {
+                        w.WriteLine("Command Run: blat.exe " + args);
+                        w.WriteLine();
+                        w.WriteLine(output);
+                    }
+                }
 
                 return true;
             }
             catch
             {
-                Console.WriteLine("Could not find file.");
+                using (StreamWriter w = File.AppendText("blat_front-end_log.txt"))
+                {
+                    if (output != null)
+                    {
+                        w.WriteLine("Command Run: blat.exe " + args);
+                        w.WriteLine();
+                        w.WriteLine(output);
+                    }
+                }
             }
 
             return false;
@@ -180,28 +188,41 @@ namespace Blat_Front_end
 
         private void sendButton_Click(object sender, EventArgs e)
         {
-            string args;
+            string args, mbmessage, mbcaption;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
             SetSelectedAllItems(fileList);
             args = buildBlatString();
 
-            if (recipientTextBox.Text != "")
+            if (isFileListEmpty())
             {
-                if (args != "invalid")
+                mbmessage = "WARNING: You did not attach any file(s).\n\nDo you want to continue?";
+                mbcaption = "Errors detected";
+                mbbuttons = MessageBoxButtons.YesNo;
+                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+
+                if (result == DialogResult.Yes)
                 {
-                    if (runBlat(args))
+                    if (recipientTextBox.Text != "")
                     {
-                        MessageBox.Show("Message sent successfully");
+                        if (args != "invalid")
+                        {
+                            if (runBlat(args))
+                            {
+                                MessageBox.Show("Message sent successfully");
+                            }
+                            else
+                            {
+                                MessageBox.Show("An error occurred and the message could not be sent." +
+                                                "\nPlease make sure Blat.exe is installed in the System32 folder.");
+                            }
+                        }
                     }
                     else
                     {
-                        MessageBox.Show("An error occurred and the message could not be sent." +
-                                        "\nPlease make sure Blat.exe is installed in the System32 folder.");
+                        MessageBox.Show("Please enter a recipient");
                     }
                 }
-            }
-            else
-            {
-                MessageBox.Show("Please enter a recipient");
             }
         }
     }
