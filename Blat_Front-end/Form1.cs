@@ -43,10 +43,10 @@ namespace Blat_Front_end
             string extension = Path.GetExtension(filePath);
             switch (extension)
             {
-                case ".txt": case ".trc": case ".log": case ".csv": case ".tsv": case ".xls": case ".ini": case ".dct":
+                case ".txt": case ".trc": case ".log": case ".csv": case ".tsv": case ".ini": case ".dct":
                     result = "text";
                     break;
-                case ".z1p": // .zip
+                case ".z1p": /* .zip */ case ".xls": case ".pdf":
                     result = "binary";
                     break;
                 default:
