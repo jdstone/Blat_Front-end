@@ -82,8 +82,8 @@ namespace Blat_Front_end
         private string buildBlatString()
         {
             string args;
-            string attachmentText = "-attacht ";
-            string attachmentBinary = "-attach ";
+            string attachmentType = "";
+            string attachment = "";
             string computername = Environment.GetEnvironmentVariable("computername");
             ListBox.SelectedObjectCollection selectedItems = new ListBox.SelectedObjectCollection(fileList);
             selectedItems = fileList.SelectedItems;
@@ -94,17 +94,32 @@ namespace Blat_Front_end
                 {
                     if (determineFileType(selectedItems[i].ToString()) == "text")
                     {
-                        attachmentText += selectedItems[i].ToString();
+                        attachmentType = "-attacht";
+                        attachment += selectedItems[i].ToString();
+                        // if there are multiple attached files
                         if (i < selectedItems.Count - 1)
-                            attachmentText += ", ";
+                            attachment += ", ";
                     }
                     else if (determineFileType(selectedItems[i].ToString()) == "binary")
                     {
-                        attachmentBinary += selectedItems[i].ToString();
+                        attachmentType = "-attach";
+                        attachment += selectedItems[i].ToString();
+                        // if there are multiple attached files
+                        if (i < selectedItems.Count - 1)
+                            attachment += ", ";
                     }
                     else
                     {
-                        MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.");
+                        if (Path.GetExtension(selectedItems[i].ToString()) == ".zip")
+                        {
+                            MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.\n\n" +
+                                "Please delete the attachment from the list, rename the attachment to .z1p (that's the number " +
+                                "one), and re-attach.");
+                        }
+                        else
+                        {
+                            MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.");
+                        }
                         return "invalid";
                     }
                 }
@@ -112,11 +127,8 @@ namespace Blat_Front_end
 
             args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to " + recipientTextBox.Text +
                 " -subject \"" + subjectTextBox.Text + "\"";
-            if (attachmentText.Length > 9)
-                args += " \"" + attachmentText + "\"";
-            if (attachmentBinary.Length > 8)
-                args += " \"" + attachmentBinary + "\"";
-
+            if (attachmentType != "")
+                args += " " + attachmentType + " \"" + attachment + "\"";
 
             return args;
         }
@@ -186,13 +198,11 @@ namespace Blat_Front_end
             }
         }
 
-        private void sendButton_Click(object sender, EventArgs e)
+        private bool checkFileList()
         {
-            string args, mbmessage, mbcaption;
+            string mbmessage, mbcaption;
             MessageBoxButtons mbbuttons;
             DialogResult result;
-            SetSelectedAllItems(fileList);
-            args = buildBlatString();
 
             if (isFileListEmpty())
             {
@@ -203,25 +213,50 @@ namespace Blat_Front_end
 
                 if (result == DialogResult.Yes)
                 {
-                    if (recipientTextBox.Text != "")
+                    return true;
+                }
+            }
+            else
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void sendButton_Click(object sender, EventArgs e)
+        {
+            string args;
+            SetSelectedAllItems(fileList);
+            args = buildBlatString();
+
+            if (checkFileList())
+            {
+                if (recipientTextBox.Text != "")
+                {
+                    if (args != "invalid")
                     {
-                        if (args != "invalid")
+                        if (runBlat(args))
                         {
-                            if (runBlat(args))
-                            {
-                                MessageBox.Show("Message sent successfully");
-                            }
-                            else
-                            {
-                                MessageBox.Show("An error occurred and the message could not be sent." +
-                                                "\nPlease make sure Blat.exe is installed in the System32 folder.");
-                            }
+                            MessageBox.Show("Message sent successfully");
+                        }
+                        else
+                        {
+                            MessageBox.Show("An error occurred and the message could not be sent." +
+                                            "\nPlease make sure Blat.exe is installed in the System32 folder.");
                         }
                     }
-                    else
-                    {
-                        MessageBox.Show("Please enter a recipient");
-                    }
+                }
+                else
+                {
+                    MessageBox.Show("Please enter a recipient");
+                }
+            }
+            else
+            {
+                using (StreamWriter w = File.AppendText("blat_front-end_log.txt"))
+                {
+                    w.WriteLine("The send button did not do anything");
                 }
             }
         }

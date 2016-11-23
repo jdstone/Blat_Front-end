@@ -38,18 +38,23 @@
             this.toNoteLabel = new System.Windows.Forms.Label();
             this.subjectLabel = new System.Windows.Forms.Label();
             this.subjectTextBox = new System.Windows.Forms.TextBox();
+            this.helpLabel = new System.Windows.Forms.Label();
+            this.helpProvider1 = new System.Windows.Forms.HelpProvider();
+            this.fileListLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // fileList
             // 
             this.fileList.AllowDrop = true;
             this.fileList.FormattingEnabled = true;
+            this.helpProvider1.SetHelpString(this.fileList, "Zip files must have a .z1p (that's the number one) extenstion.");
             this.fileList.HorizontalScrollbar = true;
             this.fileList.ItemHeight = 16;
             this.fileList.Location = new System.Drawing.Point(937, 71);
-            this.fileList.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.fileList.Margin = new System.Windows.Forms.Padding(4);
             this.fileList.Name = "fileList";
             this.fileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.helpProvider1.SetShowHelp(this.fileList, true);
             this.fileList.Size = new System.Drawing.Size(519, 324);
             this.fileList.TabIndex = 0;
             // 
@@ -58,7 +63,7 @@
             this.sendButton.BackColor = System.Drawing.Color.Red;
             this.sendButton.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.sendButton.Location = new System.Drawing.Point(1087, 657);
-            this.sendButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sendButton.Margin = new System.Windows.Forms.Padding(4);
             this.sendButton.Name = "sendButton";
             this.sendButton.Size = new System.Drawing.Size(240, 90);
             this.sendButton.TabIndex = 1;
@@ -69,7 +74,7 @@
             // bodyTextBox
             // 
             this.bodyTextBox.Location = new System.Drawing.Point(16, 60);
-            this.bodyTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.bodyTextBox.Margin = new System.Windows.Forms.Padding(4);
             this.bodyTextBox.Multiline = true;
             this.bodyTextBox.Name = "bodyTextBox";
             this.bodyTextBox.Size = new System.Drawing.Size(708, 457);
@@ -101,7 +106,7 @@
             // recipientTextBox
             // 
             this.recipientTextBox.Location = new System.Drawing.Point(937, 433);
-            this.recipientTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.recipientTextBox.Margin = new System.Windows.Forms.Padding(4);
             this.recipientTextBox.Name = "recipientTextBox";
             this.recipientTextBox.Size = new System.Drawing.Size(519, 22);
             this.recipientTextBox.TabIndex = 5;
@@ -125,7 +130,7 @@
             this.toNoteLabel.Name = "toNoteLabel";
             this.toNoteLabel.Size = new System.Drawing.Size(470, 17);
             this.toNoteLabel.TabIndex = 8;
-            this.toNoteLabel.Text = "(separate recipients using commas: ex. mark@abc.com, james@xyz.com)";
+            this.toNoteLabel.Text = "(separate recipients using commas: ex. alex@abc.com, james@xyz.com)";
             // 
             // subjectLabel
             // 
@@ -141,17 +146,37 @@
             // subjectTextBox
             // 
             this.subjectTextBox.Location = new System.Drawing.Point(937, 494);
-            this.subjectTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.subjectTextBox.Margin = new System.Windows.Forms.Padding(4);
             this.subjectTextBox.Name = "subjectTextBox";
             this.subjectTextBox.Size = new System.Drawing.Size(519, 22);
             this.subjectTextBox.TabIndex = 10;
             this.subjectTextBox.Text = "Requested File(s)";
+            // 
+            // helpLabel
+            // 
+            this.helpLabel.AutoSize = true;
+            this.helpLabel.Location = new System.Drawing.Point(618, 9);
+            this.helpLabel.Name = "helpLabel";
+            this.helpLabel.Size = new System.Drawing.Size(396, 17);
+            this.helpLabel.TabIndex = 11;
+            this.helpLabel.Text = "Click the \'?\' button in the title bar, then click a textbox for help.";
+            // 
+            // fileListLabel
+            // 
+            this.fileListLabel.AutoSize = true;
+            this.fileListLabel.Location = new System.Drawing.Point(1145, 53);
+            this.fileListLabel.Name = "fileListLabel";
+            this.fileListLabel.Size = new System.Drawing.Size(311, 17);
+            this.fileListLabel.TabIndex = 12;
+            this.fileListLabel.Text = "Use the delete key to remove items from the list.";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1500, 841);
+            this.Controls.Add(this.fileListLabel);
+            this.Controls.Add(this.helpLabel);
             this.Controls.Add(this.subjectTextBox);
             this.Controls.Add(this.subjectLabel);
             this.Controls.Add(this.toNoteLabel);
@@ -162,7 +187,10 @@
             this.Controls.Add(this.bodyTextBox);
             this.Controls.Add(this.sendButton);
             this.Controls.Add(this.fileList);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.HelpButton = true;
+            this.Margin = new System.Windows.Forms.Padding(4);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "Form1";
             this.Text = "Blat Frontend";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -183,6 +211,9 @@
         private System.Windows.Forms.Label toNoteLabel;
         private System.Windows.Forms.Label subjectLabel;
         private System.Windows.Forms.TextBox subjectTextBox;
+        private System.Windows.Forms.Label helpLabel;
+        private System.Windows.Forms.HelpProvider helpProvider1;
+        private System.Windows.Forms.Label fileListLabel;
     }
 }
 
