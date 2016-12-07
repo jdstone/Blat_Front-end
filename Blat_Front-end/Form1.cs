@@ -43,10 +43,10 @@ namespace Blat_Front_end
             string extension = Path.GetExtension(filePath);
             switch (extension)
             {
-                case ".txt": case ".trc": case ".log": case ".csv": case ".tsv": case ".ini": case ".dct":
+                case ".txt": case ".trc": case ".log": case ".tsv": case ".ini": case ".dct":
                     result = "text";
                     break;
-                case ".z1p": /* .zip */ case ".xls": case ".pdf":
+                case ".z1p": /* .zip */ case ".xls": case ".pdf": case ".csv":
                     result = "binary";
                     break;
                 default:
@@ -82,7 +82,6 @@ namespace Blat_Front_end
         private string buildBlatString()
         {
             string args;
-            string attachmentType = "";
             string attachment = "";
             string computername = Environment.GetEnvironmentVariable("computername");
             ListBox.SelectedObjectCollection selectedItems = new ListBox.SelectedObjectCollection(fileList);
@@ -92,34 +91,11 @@ namespace Blat_Front_end
             {
                 for (int i = 0; i < selectedItems.Count; i++)
                 {
-                    if (determineFileType(selectedItems[i].ToString()) == "text")
+                    if (Path.GetExtension(selectedItems[i].ToString()) == ".zip")
                     {
-                        attachmentType = "-attacht";
-                        attachment += selectedItems[i].ToString();
-                        // if there are multiple attached files
-                        if (i < selectedItems.Count - 1)
-                            attachment += ", ";
-                    }
-                    else if (determineFileType(selectedItems[i].ToString()) == "binary")
-                    {
-                        attachmentType = "-attach";
-                        attachment += selectedItems[i].ToString();
-                        // if there are multiple attached files
-                        if (i < selectedItems.Count - 1)
-                            attachment += ", ";
-                    }
-                    else
-                    {
-                        if (Path.GetExtension(selectedItems[i].ToString()) == ".zip")
-                        {
-                            MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.\n\n" +
-                                "Please delete the attachment from the list, rename the attachment to .z1p (that's the number " +
-                                "one), and re-attach.");
-                        }
-                        else
-                        {
-                            MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.");
-                        }
+                        MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.\n\n" +
+                            "Please delete the attachment from the list, rename the attachment to .z1p (that's the number " +
+                            "one), and re-attach.");
                         return "invalid";
                     }
                 }
@@ -127,8 +103,19 @@ namespace Blat_Front_end
 
             args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to " + recipientTextBox.Text +
                 " -subject \"" + subjectTextBox.Text + "\"";
-            if (attachmentType != "")
-                args += " " + attachmentType + " \"" + attachment + "\"";
+
+            if (fileList.SelectedIndex != -1)
+            {
+                for (int i = 0; i < selectedItems.Count; i++)
+                {
+                    attachment += selectedItems[i].ToString();
+                    // if there are multiple attached files
+                    if (i < selectedItems.Count - 1)
+                        attachment += ", ";
+                }
+            }
+
+            args += " -attach \"" + attachment + "\"";
 
             return args;
         }
