@@ -101,8 +101,8 @@ namespace Blat_Front_end
                 }
             }
 
-            args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to " + recipientTextBox.Text +
-                " -subject \"" + subjectTextBox.Text + "\"";
+            args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to \"" + recipientTextBox.Text +
+                "\" -subject \"" + subjectTextBox.Text + "\"";
 
             if (fileList.SelectedIndex != -1)
             {
@@ -113,9 +113,8 @@ namespace Blat_Front_end
                     if (i < selectedItems.Count - 1)
                         attachment += ", ";
                 }
+                args += " -attach \"" + attachment + "\"";
             }
-
-            args += " -attach \"" + attachment + "\"";
 
             return args;
         }
