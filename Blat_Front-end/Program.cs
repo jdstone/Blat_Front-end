@@ -16,7 +16,7 @@ namespace Blat_Front_end
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new BlatFrontend());
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Blat_Front_end
 {
-    partial class Form1
+    partial class BlatFrontend
     {
         /// <summary>
         /// Required designer variable.
@@ -170,7 +170,7 @@
             this.fileListLabel.TabIndex = 12;
             this.fileListLabel.Text = "Use the delete key to remove items from the list.";
             // 
-            // Form1
+            // BlatFrontend
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -191,9 +191,9 @@
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "Form1";
+            this.Name = "BlatFrontend";
             this.Text = "Blat Frontend";
-            this.Load += new System.EventHandler(this.Form1_Load);
+            this.Load += new System.EventHandler(this.BlatFrontend_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

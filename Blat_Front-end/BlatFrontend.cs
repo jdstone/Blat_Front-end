@@ -2,12 +2,37 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using FileHelpers;
+//*****************************************************************************************
+//                           LICENSE INFORMATION
+//*****************************************************************************************
+//   Blat Front-end Version 1.1.0.0
+//   Provides a visual (GUI) frontend to the Blat email utility (www.blat.net)
+//
+//   Copyright © 2016
+//   J.D. Stone
+//   Email: jdstone@jdstone1.com
+//   Created: 06NOV2016
+//
+//   This program is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//*****************************************************************************************
 
 namespace Blat_Front_end
 {
-    public partial class Form1 : Form
+    public partial class BlatFrontend : Form
     {
-        public Form1()
+        public BlatFrontend()
         {
             InitializeComponent();
             this.AllowDrop = true;
@@ -16,9 +41,25 @@ namespace Blat_Front_end
             fileList.KeyDown += new KeyEventHandler(fileList_KeyDown);
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void BlatFrontend_Load(object sender, EventArgs e)
         {
-            
+            var engine = new FileHelperAsyncEngine<Contact>();
+            var source = new AutoCompleteStringCollection();
+
+            if (File.Exists("contacts.csv"))
+            {
+                using (engine.BeginReadFile("contacts.csv"))
+                {
+                    foreach (Contact contact in engine)
+                    {
+                        source.Add(contact.emailAddress);
+                    }
+                }
+
+                recipientTextBox.AutoCompleteCustomSource = source;
+                recipientTextBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                recipientTextBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            }
         }
 
         private void fileList_DragEnter(object sender, DragEventArgs e)
@@ -37,6 +78,7 @@ namespace Blat_Front_end
                 fileList.Items.Add(str[i]);
         }
 
+        #region Helper Functions
         private string determineFileType(string filePath)
         {
             string result;
@@ -67,7 +109,7 @@ namespace Blat_Front_end
             return false;
         }
 
-        public void SetSelectedAllItems(ListBox listbox)
+        private void SetSelectedAllItems(ListBox listbox)
         {
             listbox.BeginUpdate();
 
@@ -78,6 +120,7 @@ namespace Blat_Front_end
 
             listbox.EndUpdate();
         }
+        #endregion
 
         private string buildBlatString()
         {
@@ -163,6 +206,7 @@ namespace Blat_Front_end
             return false;
         }
 
+        #region Delete Attachment(s)
         private void fileList_KeyDown(object sender, KeyEventArgs e)
         {
             // If delete key is pressed, either delete
@@ -183,6 +227,7 @@ namespace Blat_Front_end
                 e.Handled = true;
             }
         }
+        #endregion
 
         private bool checkFileList()
         {
@@ -210,6 +255,7 @@ namespace Blat_Front_end
             return false;
         }
 
+        // Send Email
         private void sendButton_Click(object sender, EventArgs e)
         {
             string args;
