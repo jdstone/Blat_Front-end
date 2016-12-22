@@ -6,7 +6,7 @@ using FileHelpers;
 //*****************************************************************************************
 //                           LICENSE INFORMATION
 //*****************************************************************************************
-//   Blat Front-end Version 1.1.0.0
+//   Blat Front-end Version 1.2.0.0
 //   Provides a visual (GUI) frontend to the Blat email utility (www.blat.net)
 //
 //   Copyright © 2016
@@ -35,10 +35,12 @@ namespace Blat_Front_end
         public BlatFrontend()
         {
             InitializeComponent();
-            this.AllowDrop = true;
+            AllowDrop = true;
             fileList.DragDrop += new DragEventHandler(fileList_DragDrop);
             fileList.DragEnter += new DragEventHandler(fileList_DragEnter);
             fileList.KeyDown += new KeyEventHandler(fileList_KeyDown);
+            recipientList.KeyDown += new KeyEventHandler(recipientList_KeyDown);
+            recipientAutoCompTextBox.KeyDown += new KeyEventHandler(recipientAutoCompTextBox_KeyDown);
         }
 
         private void BlatFrontend_Load(object sender, EventArgs e)
@@ -46,9 +48,9 @@ namespace Blat_Front_end
             var engine = new FileHelperAsyncEngine<Contact>();
             var source = new AutoCompleteStringCollection();
 
-            if (File.Exists("contacts.csv"))
+            if (File.Exists("contacts.lst"))
             {
-                using (engine.BeginReadFile("contacts.csv"))
+                using (engine.BeginReadFile("contacts.lst"))
                 {
                     foreach (Contact contact in engine)
                     {
@@ -56,10 +58,15 @@ namespace Blat_Front_end
                     }
                 }
 
-                recipientTextBox.AutoCompleteCustomSource = source;
-                recipientTextBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                recipientTextBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                recipientAutoCompTextBox.AutoCompleteCustomSource = source;
+                recipientAutoCompTextBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                recipientAutoCompTextBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             }
+        }
+
+        private void BlatFrontend_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            cleanUp();
         }
 
         private void fileList_DragEnter(object sender, DragEventArgs e)
@@ -78,8 +85,18 @@ namespace Blat_Front_end
                 fileList.Items.Add(str[i]);
         }
 
+        private void recipientAutoCompTextBox_Enter(object sender, EventArgs e)
+        {
+            recipientAutoCompTextBox.Text = "";
+        }
+
+        private void recipientAutoCompTextBox_Leave(object sender, EventArgs e)
+        {
+            recipientAutoCompTextBox.Text = "Enter an email address here...";
+        }
+
         #region Helper Functions
-        private string determineFileType(string filePath)
+        /*private string determineFileType(string filePath)
         {
             string result;
             string extension = Path.GetExtension(filePath);
@@ -88,7 +105,7 @@ namespace Blat_Front_end
                 case ".txt": case ".trc": case ".log": case ".tsv": case ".ini": case ".dct":
                     result = "text";
                     break;
-                case ".z1p": /* .zip */ case ".xls": case ".pdf": case ".csv":
+                case ".z1p": /* .zip */ /*case ".xls": case ".pdf": case ".csv":
                     result = "binary";
                     break;
                 default:
@@ -97,11 +114,11 @@ namespace Blat_Front_end
             }
 
             return result;
-        }
+        }*/
 
         private bool isFileListEmpty()
         {
-            if (fileList.SelectedIndex == -1)
+            if (fileList.Items.Count == 0)
             {
                 return true;
             }
@@ -109,51 +126,114 @@ namespace Blat_Front_end
             return false;
         }
 
-        private void SetSelectedAllItems(ListBox listbox)
+        private bool renameToZ1pAndReattach(string path)
         {
-            listbox.BeginUpdate();
+            string oldFileName, newFileName;
 
-            for (int i = 0; i < listbox.Items.Count; i++)
+            oldFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileName(path));
+            newFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path)) + ".z1p";
+
+            try
             {
-                listbox.SetSelected(i, true);
+                fileList.Items.Remove(oldFileName);
+                File.Move(oldFileName, newFileName);
+                fileList.Items.Add(newFileName);
+            }
+            catch (Exception)
+            {
+                return false;
             }
 
-            listbox.EndUpdate();
+            return true;
+        }
+
+        private bool renameToZip(string path)
+        {
+            string oldFileName, newFileName;
+
+            oldFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileName(path));
+            newFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path)) + ".zip";
+
+            fileList.Items.Remove(oldFileName);
+            File.Move(oldFileName, newFileName);
+            fileList.Items.Add(newFileName);
+
+            try
+            {
+                fileList.Items.Remove(oldFileName);
+                File.Move(oldFileName, newFileName);
+                fileList.Items.Add(newFileName);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void cleanUp()
+        {
+            for (int i = 0; i < fileList.Items.Count; i++)
+            {
+                if (Path.GetExtension(fileList.Items[i].ToString()) == ".z1p")
+                    renameToZip(fileList.Items[i].ToString());
+
+                fileList.Items.Remove(fileList.Items[i].ToString());
+            }
+
+            recipientList.Items.Clear();
         }
         #endregion
 
         private string buildBlatString()
         {
-            string args;
-            string attachment = "";
-            string computername = Environment.GetEnvironmentVariable("computername");
-            ListBox.SelectedObjectCollection selectedItems = new ListBox.SelectedObjectCollection(fileList);
-            selectedItems = fileList.SelectedItems;
+            string mbmessage, mbcaption, args;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
 
-            if (fileList.SelectedIndex != -1)
+            string attachment = "";
+            string recipientListString = "";
+            string computername = Environment.GetEnvironmentVariable("computername");
+
+            if (!isFileListEmpty())
             {
-                for (int i = 0; i < selectedItems.Count; i++)
+                for (int i = 0; i < fileList.Items.Count; i++)
                 {
-                    if (Path.GetExtension(selectedItems[i].ToString()) == ".zip")
+                    if (Path.GetExtension(fileList.Items[i].ToString()) == ".zip")
                     {
-                        MessageBox.Show(Path.GetExtension(selectedItems[i].ToString()) + " is not a valid file type.\n\n" +
-                            "Please delete the attachment from the list, rename the attachment to .z1p (that's the number " +
-                            "one), and re-attach.");
-                        return "invalid";
+                        if (!renameToZ1pAndReattach(fileList.Items[i].ToString()))
+                        {
+                            mbmessage = "The file could not be attached. It may be open in another program.";
+                            mbcaption = "Error";
+                            mbbuttons = MessageBoxButtons.OK;
+                            result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                                MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+
+                            return null;
+                        }
                     }
                 }
             }
 
-            args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to \"" + recipientTextBox.Text +
-                "\" -subject \"" + subjectTextBox.Text + "\"";
-
-            if (fileList.SelectedIndex != -1)
+            for (int i = 0; i < recipientList.Items.Count; i++)
             {
-                for (int i = 0; i < selectedItems.Count; i++)
+                recipientListString += recipientList.Items[i].ToString();
+                // if there are multiple attached files
+                if (i < recipientList.Items.Count - 1)
+                    recipientListString += ", ";
+            }
+
+            args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to \"" +
+                recipientListString + "\" -subject \"" + subjectTextBox.Text + "\"";
+
+            if (fileList.Items.Count > 0)
+            {
+                for (int i = 0; i < fileList.Items.Count; i++)
                 {
-                    attachment += selectedItems[i].ToString();
+                    attachment += fileList.Items[i].ToString();
                     // if there are multiple attached files
-                    if (i < selectedItems.Count - 1)
+                    if (i < fileList.Items.Count - 1)
                         attachment += ", ";
                 }
                 args += " -attach \"" + attachment + "\"";
@@ -209,6 +289,10 @@ namespace Blat_Front_end
         #region Delete Attachment(s)
         private void fileList_KeyDown(object sender, KeyEventArgs e)
         {
+            string mbmessage, mbcaption;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
+
             // If delete key is pressed, either delete
             // selected item(s) or show message box
             if (e.KeyCode == Keys.Delete)
@@ -221,10 +305,95 @@ namespace Blat_Front_end
                     for (int i = selectedItems.Count - 1; i >= 0; i--)
                         fileList.Items.Remove(selectedItems[i]);
                 } else {
-                    MessageBox.Show("Please select an item");
+                    mbmessage = "Please select an item";
+                    mbcaption = "Information";
+                    mbbuttons = MessageBoxButtons.OK;
+                    result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                        MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 }
 
                 e.Handled = true;
+            }
+        }
+        #endregion
+
+        #region Delete Recipient(s)
+        private void recipientList_KeyDown(object sender, KeyEventArgs e)
+        {
+            string mbmessage, mbcaption;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
+
+            // If delete key is pressed, either delete
+            // selected item(s) or show message box
+            if (e.KeyCode == Keys.Delete)
+            {
+                ListBox.SelectedObjectCollection selectedItems = new ListBox.SelectedObjectCollection(recipientList);
+                selectedItems = recipientList.SelectedItems;
+
+                if (recipientList.SelectedIndex != -1)
+                {
+                    for (int i = selectedItems.Count - 1; i >= 0; i--)
+                        recipientList.Items.Remove(selectedItems[i]);
+                }
+                else
+                {
+                    mbmessage = "Please select an item";
+                    mbcaption = "Information";
+                    mbbuttons = MessageBoxButtons.OK;
+                    result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                        MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                }
+
+                e.Handled = true;
+            }
+        }
+        #endregion
+
+        #region Add Recipient
+        private void recipientAutoCompTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            string mbmessage, mbcaption;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
+
+            // Add to recipientList and remove/clear
+            // from recipientAutoCompTextBox
+            if (e.KeyCode == Keys.Enter)
+            {
+                try
+                {
+                    new System.Net.Mail.MailAddress(recipientAutoCompTextBox.Text);
+                    if (recipientAutoCompTextBox.Text != "")
+                    {
+                        if (ListBox.NoMatches == recipientList.FindStringExact(recipientAutoCompTextBox.Text))
+                        {
+                            // Add to recipientList
+                            recipientList.Items.Add(recipientAutoCompTextBox.Text);
+                            // delete or clear from recipientAutoCompTextBox
+                            recipientAutoCompTextBox.Clear();
+                        }
+                        else
+                        {
+                            mbmessage = "\"" + recipientAutoCompTextBox.Text +
+                                "\"\nhas already been added to the list of recipients";
+                            mbcaption = "Error detected";
+                            mbbuttons = MessageBoxButtons.OK;
+                            result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                                MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                        }
+
+                        e.Handled = true;
+                    }
+                }
+                catch (Exception)
+                {
+                    mbmessage = "Please enter a valid email address";
+                    mbcaption = "Error detected";
+                    mbbuttons = MessageBoxButtons.OK;
+                    result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                        MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                }
             }
         }
         #endregion
@@ -237,10 +406,11 @@ namespace Blat_Front_end
 
             if (isFileListEmpty())
             {
-                mbmessage = "WARNING: You did not attach any file(s).\n\nDo you want to continue?";
+                mbmessage = "WARNING: You did not attach any file(s).\n\nDo you wish to continue?";
                 mbcaption = "Errors detected";
                 mbbuttons = MessageBoxButtons.YesNo;
-                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                    MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
 
                 if (result == DialogResult.Yes)
                 {
@@ -258,37 +428,56 @@ namespace Blat_Front_end
         // Send Email
         private void sendButton_Click(object sender, EventArgs e)
         {
-            string args;
-            SetSelectedAllItems(fileList);
+            string mbmessage, mbcaption, args;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
+
             args = buildBlatString();
 
-            if (checkFileList())
+            if (args != null)
             {
-                if (recipientTextBox.Text != "")
+                if (checkFileList())
                 {
-                    if (args != "invalid")
+                    if (recipientList.Items.Count > 0)
                     {
-                        if (runBlat(args))
+                        if (args != "invalid")
                         {
-                            MessageBox.Show("Message sent successfully");
+                            if (runBlat(args))
+                            {
+                                mbmessage = "Email message sent successfully!";
+                                mbcaption = "Information";
+                                mbbuttons = MessageBoxButtons.OK;
+                                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                                    MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+
+                                cleanUp();
+                            }
+                            else
+                            {
+                                mbmessage = "An error occurred and the message could not be sent." +
+                                            "\nPlease make sure Blat.exe is installed in the System32 folder.";
+                                mbcaption = "Information";
+                                mbbuttons = MessageBoxButtons.OK;
+                                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                                    MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                            }
                         }
-                        else
-                        {
-                            MessageBox.Show("An error occurred and the message could not be sent." +
-                                            "\nPlease make sure Blat.exe is installed in the System32 folder.");
-                        }
+                    }
+                    else
+                    {
+                        mbmessage = "Please enter a recipient";
+                        mbcaption = "Information";
+                        mbbuttons = MessageBoxButtons.OK;
+                        result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                            MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Please enter a recipient");
-                }
-            }
-            else
-            {
-                using (StreamWriter w = File.AppendText("blat_front-end_log.txt"))
-                {
-                    w.WriteLine("The send button did not do anything");
+                    using (StreamWriter w = File.AppendText("blat_front-end_log.txt"))
+                    {
+                        w.WriteLine("The send button did not do anything");
+                    }
                 }
             }
         }
