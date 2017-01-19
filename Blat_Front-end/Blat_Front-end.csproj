@@ -120,8 +120,6 @@
     <Analyzer Include="..\packages\FileHelpers.Analyzer.1.1.0.0\analyzers\dotnet\cs\FileHelpers.Analyzer.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="1482452174_01_messages.ico" />
-    <Content Include="devil.ico" />
     <Content Include="Email.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
