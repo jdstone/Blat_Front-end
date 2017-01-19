@@ -95,27 +95,41 @@ namespace Blat_Front_end
             recipientAutoCompTextBox.Text = "Enter an email address here...";
         }
 
-        #region Helper Functions
-        /*private string determineFileType(string filePath)
+        private void fromTextBox_Enter(object sender, EventArgs e)
         {
-            string result;
-            string extension = Path.GetExtension(filePath);
-            switch (extension)
+            if (fromTextBox.Text == "" || fromTextBox.Text == "Enter an email address here...")
+                fromTextBox.Text = "";
+        }
+
+        private void fromTextBox_Leave(object sender, EventArgs e)
+        {
+            string mbmessage, mbcaption;
+            MessageBoxButtons mbbuttons;
+            DialogResult result;
+
+            if (fromTextBox.Text == "")
+                fromTextBox.Text = "Enter an email address here...";
+
+            try
             {
-                case ".txt": case ".trc": case ".log": case ".tsv": case ".ini": case ".dct":
-                    result = "text";
-                    break;
-                case ".z1p": /* .zip */ /*case ".xls": case ".pdf": case ".csv":
-                    result = "binary";
-                    break;
-                default:
-                    result = "not a valid file type";
-                    break;
+                if (fromTextBox.Text != "Enter an email address here...")
+                {
+                    new System.Net.Mail.MailAddress(fromTextBox.Text);
+                }
             }
+            catch (Exception)
+            {
+                mbmessage = "Please enter a valid email address";
+                mbcaption = "Error detected";
+                mbbuttons = MessageBoxButtons.OK;
+                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                    MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
 
-            return result;
-        }*/
+                fromTextBox.Text = "Enter an email address here...";
+            }
+        }
 
+        #region Helper Functions
         private bool isFileListEmpty()
         {
             if (fileList.Items.Count == 0)
@@ -174,12 +188,12 @@ namespace Blat_Front_end
 
         private void cleanUp()
         {
-            for (int i = 0; i < fileList.Items.Count; i++)
+            for (int i = fileList.Items.Count-1; i >= 0; i--)
             {
                 if (Path.GetExtension(fileList.Items[i].ToString()) == ".z1p")
                     renameToZip(fileList.Items[i].ToString());
 
-                fileList.Items.Remove(fileList.Items[i].ToString());
+                fileList.Items.RemoveAt(i);
             }
 
             recipientList.Items.Clear();
@@ -188,7 +202,7 @@ namespace Blat_Front_end
 
         private string buildBlatString()
         {
-            string mbmessage, mbcaption, args;
+            string mbmessage, mbcaption, fromAddress, args;
             MessageBoxButtons mbbuttons;
             DialogResult result;
 
@@ -198,7 +212,7 @@ namespace Blat_Front_end
 
             if (!isFileListEmpty())
             {
-                for (int i = 0; i < fileList.Items.Count; i++)
+                for (int i = fileList.Items.Count - 1; i >= 0; i--)
                 {
                     if (Path.GetExtension(fileList.Items[i].ToString()) == ".zip")
                     {
@@ -224,7 +238,16 @@ namespace Blat_Front_end
                     recipientListString += ", ";
             }
 
-            args = "-body \"" + bodyTextBox.Text + "\" -from " + computername + "@domain.com -to \"" +
+            if (fromTextBox.Text == "Enter an email address here...")
+            {
+                fromAddress = computername;
+            }
+            else
+            {
+                fromAddress = fromTextBox.Text;
+            }
+
+            args = "-body \"" + bodyTextBox.Text + "\" -from \"" + fromAddress + "\" -to \"" +
                 recipientListString + "\" -subject \"" + subjectTextBox.Text + "\"";
 
             if (fileList.Items.Count > 0)
