@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
@@ -6,7 +7,7 @@ using FileHelpers;
 //*****************************************************************************************
 //                           LICENSE INFORMATION
 //*****************************************************************************************
-//   Blat Front-end Version 1.2.0.0
+//   Blat Front-end Version 1.3.0.0
 //   Provides a visual (GUI) frontend to the Blat email utility (www.blat.net)
 //
 //   Copyright © 2016
@@ -34,6 +35,8 @@ namespace Blat_Front_end
     {
         public BlatFrontend()
         {
+            string computername = Environment.GetEnvironmentVariable("computername");
+
             InitializeComponent();
             AllowDrop = true;
             fileList.DragDrop += new DragEventHandler(fileList_DragDrop);
@@ -41,6 +44,20 @@ namespace Blat_Front_end
             fileList.KeyDown += new KeyEventHandler(fileList_KeyDown);
             recipientList.KeyDown += new KeyEventHandler(recipientList_KeyDown);
             recipientAutoCompTextBox.KeyDown += new KeyEventHandler(recipientAutoCompTextBox_KeyDown);
+
+            if (ReadSetting("DisableFromEmailAddressField") == "true")
+            {
+                fromTextBox.Enabled = false;
+                if (ReadSetting("UseDefaultFromEmailAddress") == "false")
+                {
+                    fromTextBox.Text = computername;
+                }
+                else
+                {
+                    fromTextBox.Text = (ReadSetting("DefaultFromEmailAddress") == "@computername") ?
+                        fromTextBox.Text = computername : fromTextBox.Text = ReadSetting("DefaultFromEmailAddress");
+                }
+            }
         }
 
         private void BlatFrontend_Load(object sender, EventArgs e)
@@ -67,6 +84,23 @@ namespace Blat_Front_end
         private void BlatFrontend_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             cleanUp();
+        }
+
+        static string ReadSetting(string key)
+        {
+            string result;
+
+            try
+            {
+                var appSettings = ConfigurationManager.AppSettings;
+                result = appSettings[key] ?? "Not Found";
+            }
+            catch (ConfigurationErrorsException)
+            {
+                result = "Error reading app settings";
+            }
+
+            return result;
         }
 
         private void fileList_DragEnter(object sender, DragEventArgs e)
@@ -140,12 +174,12 @@ namespace Blat_Front_end
             return false;
         }
 
-        private bool renameToZ1pAndReattach(string path)
+        private bool renameToAltZipExtAndReattach(string path)
         {
             string oldFileName, newFileName;
 
             oldFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileName(path));
-            newFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path)) + ".z1p";
+            newFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path)) + "." + ReadSetting("RenameZipExt");
 
             try
             {
@@ -190,7 +224,7 @@ namespace Blat_Front_end
         {
             for (int i = fileList.Items.Count-1; i >= 0; i--)
             {
-                if (Path.GetExtension(fileList.Items[i].ToString()) == ".z1p")
+                if (Path.GetExtension(fileList.Items[i].ToString()) == "." + ReadSetting("RenameZipExt"))
                     renameToZip(fileList.Items[i].ToString());
 
                 fileList.Items.RemoveAt(i);
@@ -216,15 +250,18 @@ namespace Blat_Front_end
                 {
                     if (Path.GetExtension(fileList.Items[i].ToString()) == ".zip")
                     {
-                        if (!renameToZ1pAndReattach(fileList.Items[i].ToString()))
+                        if (ReadSetting("UseRenameZip") == "true")
                         {
-                            mbmessage = "The file could not be attached. It may be open in another program.";
-                            mbcaption = "Error";
-                            mbbuttons = MessageBoxButtons.OK;
-                            result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
-                                MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                            if (!renameToAltZipExtAndReattach(fileList.Items[i].ToString()))
+                            {
+                                mbmessage = "The file could not be attached. It may be open in another program.";
+                                mbcaption = "Error";
+                                mbbuttons = MessageBoxButtons.OK;
+                                result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
+                                    MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
 
-                            return null;
+                                return null;
+                            }
                         }
                     }
                 }
@@ -238,13 +275,27 @@ namespace Blat_Front_end
                     recipientListString += ", ";
             }
 
-            if (fromTextBox.Text == "Enter an email address here...")
+            if (ReadSetting("UseDefaultFromEmailAddress") == "true")
             {
-                fromAddress = computername;
+                if (ReadSetting("DefaultFromEmailAddress") == "@computername")
+                {
+                    fromAddress = computername;
+                }
+                else
+                {
+                    fromAddress = ReadSetting("DefaultFromEmailAddress");
+                }
             }
             else
             {
-                fromAddress = fromTextBox.Text;
+                if (fromTextBox.Text == "Enter an email address here...")
+                {
+                    fromAddress = computername;
+                }
+                else
+                {
+                    fromAddress = fromTextBox.Text;
+                }
             }
 
             args = "-body \"" + bodyTextBox.Text + "\" -from \"" + fromAddress + "\" -to \"" +
