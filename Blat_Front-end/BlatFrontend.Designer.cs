@@ -217,7 +217,7 @@
             this.Controls.Add(this.fileList);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "BlatFrontend";
-            this.Text = "Blat Frontend v1.2.2.1";
+            this.Text = "Blat Frontend v1.3.0.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BlatFrontend_Closing);
             this.Load += new System.EventHandler(this.BlatFrontend_Load);
             this.ResumeLayout(false);
