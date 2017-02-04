@@ -51,13 +51,7 @@
             this.fileList.AllowDrop = true;
             this.fileList.FormattingEnabled = true;
             this.fileList.HorizontalScrollbar = true;
-<<<<<<< HEAD
             this.fileList.Location = new System.Drawing.Point(518, 58);
-=======
-            this.fileList.ItemHeight = 16;
-            this.fileList.Location = new System.Drawing.Point(691, 71);
-            this.fileList.Margin = new System.Windows.Forms.Padding(4);
->>>>>>> ee3d736... Develop (#2)
             this.fileList.Name = "fileList";
             this.fileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.fileList.Size = new System.Drawing.Size(575, 264);
@@ -67,12 +61,7 @@
             // 
             this.sendButton.BackColor = System.Drawing.Color.Red;
             this.sendButton.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
-<<<<<<< HEAD
             this.sendButton.Location = new System.Drawing.Point(706, 376);
-=======
-            this.sendButton.Location = new System.Drawing.Point(941, 463);
-            this.sendButton.Margin = new System.Windows.Forms.Padding(4);
->>>>>>> ee3d736... Develop (#2)
             this.sendButton.Name = "sendButton";
             this.sendButton.Size = new System.Drawing.Size(180, 73);
             this.sendButton.TabIndex = 6;
@@ -122,12 +111,7 @@
             // 
             // recipientAutoCompTextBox
             // 
-<<<<<<< HEAD
             this.recipientAutoCompTextBox.Location = new System.Drawing.Point(12, 108);
-=======
-            this.recipientAutoCompTextBox.Location = new System.Drawing.Point(16, 71);
-            this.recipientAutoCompTextBox.Margin = new System.Windows.Forms.Padding(4);
->>>>>>> ee3d736... Develop (#2)
             this.recipientAutoCompTextBox.Name = "recipientAutoCompTextBox";
             this.recipientAutoCompTextBox.Size = new System.Drawing.Size(464, 20);
             this.recipientAutoCompTextBox.TabIndex = 1;
@@ -138,13 +122,7 @@
             // recipientList
             // 
             this.recipientList.FormattingEnabled = true;
-<<<<<<< HEAD
             this.recipientList.Location = new System.Drawing.Point(12, 158);
-=======
-            this.recipientList.ItemHeight = 16;
-            this.recipientList.Location = new System.Drawing.Point(16, 133);
-            this.recipientList.Margin = new System.Windows.Forms.Padding(4);
->>>>>>> ee3d736... Develop (#2)
             this.recipientList.Name = "recipientList";
             this.recipientList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.recipientList.Size = new System.Drawing.Size(464, 43);
@@ -182,12 +160,7 @@
             // 
             // subjectTextBox
             // 
-<<<<<<< HEAD
             this.subjectTextBox.Location = new System.Drawing.Point(12, 231);
-=======
-            this.subjectTextBox.Location = new System.Drawing.Point(16, 224);
-            this.subjectTextBox.Margin = new System.Windows.Forms.Padding(4);
->>>>>>> ee3d736... Develop (#2)
             this.subjectTextBox.Name = "subjectTextBox";
             this.subjectTextBox.Size = new System.Drawing.Size(464, 20);
             this.subjectTextBox.TabIndex = 3;
@@ -195,12 +168,7 @@
             // 
             // bodyTextBox
             // 
-<<<<<<< HEAD
             this.bodyTextBox.Location = new System.Drawing.Point(12, 281);
-=======
-            this.bodyTextBox.Location = new System.Drawing.Point(16, 287);
-            this.bodyTextBox.Margin = new System.Windows.Forms.Padding(4);
->>>>>>> ee3d736... Develop (#2)
             this.bodyTextBox.Name = "bodyTextBox";
             this.bodyTextBox.Size = new System.Drawing.Size(464, 264);
             this.bodyTextBox.TabIndex = 4;
@@ -248,14 +216,9 @@
             this.Controls.Add(this.sendButton);
             this.Controls.Add(this.fileList);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-<<<<<<< HEAD
+
             this.Name = "BlatFrontend";
-            this.Text = "Blat Frontend v1.2.2.1";
-=======
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "BlatFrontend";
-            this.Text = "Blat Frontend v1.2.1.0";
->>>>>>> ee3d736... Develop (#2)
+            this.Text = "Blat Frontend v1.3.0.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BlatFrontend_Closing);
             this.Load += new System.EventHandler(this.BlatFrontend_Load);
             this.ResumeLayout(false);
