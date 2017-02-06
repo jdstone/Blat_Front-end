@@ -10,7 +10,7 @@ using FileHelpers;
 //   Blat Front-end Version 1.3.0.0
 //   Provides a visual (GUI) frontend to the Blat email utility (www.blat.net)
 //
-//   Copyright © 2016
+//   Copyright © 2017
 //   J.D. Stone
 //   Email: jdstone@jdstone1.com
 //   Created: 06NOV2016
@@ -33,6 +33,10 @@ namespace Blat_Front_end
 {
     public partial class BlatFrontend : Form
     {
+        /// <summary>
+        /// Constructor for BlatFrontend. Initilize variables and set the default stage for the
+        /// application when launched.
+        /// </summary>
         public BlatFrontend()
         {
             string computername = Environment.GetEnvironmentVariable("computername");
@@ -60,6 +64,12 @@ namespace Blat_Front_end
             }
         }
 
+        /// <summary>
+        /// Handles loading the initial contacts file to use as the autocompletion content for the
+        /// receipient text box.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BlatFrontend_Load(object sender, EventArgs e)
         {
             var engine = new FileHelperAsyncEngine<Contact>();
@@ -81,11 +91,21 @@ namespace Blat_Front_end
             }
         }
 
+        /// <summary>
+        /// Cleans up various text fields and list boxes when closing the program.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BlatFrontend_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             cleanUp();
         }
 
+        /// <summary>
+        /// Read the application configuration file and return the value of the specified setting.
+        /// </summary>
+        /// <param name="key">Used to specify the setting's name so the value can be read.</param>
+        /// <returns>Returns string representing the setting read.</returns>
         static string ReadSetting(string key)
         {
             string result;
@@ -103,6 +123,7 @@ namespace Blat_Front_end
             return result;
         }
 
+        #region Drag/Drop for File List
         private void fileList_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -118,7 +139,9 @@ namespace Blat_Front_end
             for (i = 0; i < str.Length; i++)
                 fileList.Items.Add(str[i]);
         }
+        #endregion
 
+        #region Focus/Un-focus Controls
         private void recipientAutoCompTextBox_Enter(object sender, EventArgs e)
         {
             recipientAutoCompTextBox.Text = "";
@@ -162,8 +185,13 @@ namespace Blat_Front_end
                 fromTextBox.Text = "Enter an email address here...";
             }
         }
+        #endregion
 
         #region Helper Functions
+        /// <summary>
+        /// Determines if Attachment box (file list) is empty or not.
+        /// </summary>
+        /// <returns>Returns boolean.</returns>
         private bool isFileListEmpty()
         {
             if (fileList.Items.Count == 0)
@@ -174,12 +202,18 @@ namespace Blat_Front_end
             return false;
         }
 
+        /// <summary>
+        /// Temporarily removes zip attachment, renames zip file to alternate extension
+        /// (set in App.config) and re-attaches.
+        /// </summary>
+        /// <param name="path">Path to zip file.</param>
+        /// <returns>Returns true/false if file was successfully renamed and re-attached to file list.</returns>
         private bool renameToAltZipExtAndReattach(string path)
         {
             string oldFileName, newFileName;
 
             oldFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileName(path));
-            newFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path)) + "." + ReadSetting("RenameZipExt");
+            newFileName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path)) + $".{ReadSetting("RenameZipExt")}";
 
             try
             {
@@ -195,6 +229,11 @@ namespace Blat_Front_end
             return true;
         }
 
+        /// <summary>
+        /// Renames the file with the alternate "zip" extension to .zip.
+        /// </summary>
+        /// <param name="path">Path to renamed zip file.</param>
+        /// <returns>Returns true/false if file was successfully renamed with a zip extension.</returns>
         private bool renameToZip(string path)
         {
             string oldFileName, newFileName;
@@ -220,6 +259,9 @@ namespace Blat_Front_end
             return true;
         }
 
+        /// <summary>
+        /// Clear attachment list (file list), and if zip files are present, rename to extension .zip.
+        /// </summary>
         private void cleanUp()
         {
             for (int i = fileList.Items.Count-1; i >= 0; i--)
@@ -234,6 +276,10 @@ namespace Blat_Front_end
         }
         #endregion
 
+        /// <summary>
+        /// Build the Blat command string that this program runs to send the email.
+        /// </summary>
+        /// <returns>Return a string -- a Blat command string.</returns>
         private string buildBlatString()
         {
             string mbmessage, mbcaption, fromAddress, args;
@@ -277,25 +323,29 @@ namespace Blat_Front_end
 
             if (ReadSetting("UseDefaultFromEmailAddress") == "true")
             {
-                if (ReadSetting("DefaultFromEmailAddress") == "@computername")
+                fromAddress = (ReadSetting("DefaultFromEmailAddress") == "@computername") ?
+                    computername : ReadSetting("DefaultFromEmailAddress");
+                /*if (ReadSetting("DefaultFromEmailAddress") == "@computername")
                 {
                     fromAddress = computername;
                 }
                 else
                 {
                     fromAddress = ReadSetting("DefaultFromEmailAddress");
-                }
+                }*/
             }
             else
             {
-                if (fromTextBox.Text == "Enter an email address here...")
+                fromAddress = (fromTextBox.Text == "Enter an email address here...") ?
+                    computername : fromTextBox.Text;
+                /*if (fromTextBox.Text == "Enter an email address here...")
                 {
                     fromAddress = computername;
                 }
                 else
                 {
                     fromAddress = fromTextBox.Text;
-                }
+                }*/
             }
 
             args = "-body \"" + bodyTextBox.Text + "\" -from \"" + fromAddress + "\" -to \"" +
@@ -310,12 +360,18 @@ namespace Blat_Front_end
                     if (i < fileList.Items.Count - 1)
                         attachment += ", ";
                 }
-                args += " -attach \"" + attachment + "\"";
+                //args += " -attach \"" + attachment + "\"";
+                args += $" -attach \"{attachment}\"";
             }
 
             return args;
         }
 
+        /// <summary>
+        /// Run blat.exe with arguments writing to the log regardless if successful or failure.
+        /// </summary>
+        /// <param name="args">Pass in arguments to the Blat.exe program.</param>
+        /// <returns>Returns true/false if the program ran successfully.</returns>
         private bool runBlat(string args)
         {
             Process p = new Process();
@@ -472,6 +528,10 @@ namespace Blat_Front_end
         }
         #endregion
 
+        /// <summary>
+        /// Checks the attachment list to see if there are any attached files.
+        /// </summary>
+        /// <returns>Returns boolean.</returns>
         private bool checkFileList()
         {
             string mbmessage, mbcaption;
@@ -499,7 +559,11 @@ namespace Blat_Front_end
             return false;
         }
 
-        // Send Email
+        /// <summary>
+        /// Send Email
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void sendButton_Click(object sender, EventArgs e)
         {
             string mbmessage, mbcaption, args;
