@@ -52,6 +52,7 @@ namespace Blat_Front_end
             if (ReadSetting("DisableFromEmailAddressField") == "true")
             {
                 fromTextBox.Enabled = false;
+
                 if (ReadSetting("UseDefaultFromEmailAddress") == "false")
                 {
                     fromTextBox.Text = computername;
@@ -266,7 +267,7 @@ namespace Blat_Front_end
         {
             for (int i = fileList.Items.Count-1; i >= 0; i--)
             {
-                if (Path.GetExtension(fileList.Items[i].ToString()) == "." + ReadSetting("RenameZipExt"))
+                if (Path.GetExtension(fileList.Items[i].ToString()) == $".{ReadSetting("RenameZipExt")}")
                     renameToZip(fileList.Items[i].ToString());
 
                 fileList.Items.RemoveAt(i);
@@ -282,7 +283,7 @@ namespace Blat_Front_end
         /// <returns>Return a string -- a Blat command string.</returns>
         private string buildBlatString()
         {
-            string mbmessage, mbcaption, fromAddress, args;
+            string mbmessage, mbcaption, fromAddress, args, body, from, to, subject;
             MessageBoxButtons mbbuttons;
             DialogResult result;
 
@@ -325,31 +326,14 @@ namespace Blat_Front_end
             {
                 fromAddress = (ReadSetting("DefaultFromEmailAddress") == "@computername") ?
                     computername : ReadSetting("DefaultFromEmailAddress");
-                /*if (ReadSetting("DefaultFromEmailAddress") == "@computername")
-                {
-                    fromAddress = computername;
-                }
-                else
-                {
-                    fromAddress = ReadSetting("DefaultFromEmailAddress");
-                }*/
             }
             else
             {
                 fromAddress = (fromTextBox.Text == "Enter an email address here...") ?
                     computername : fromTextBox.Text;
-                /*if (fromTextBox.Text == "Enter an email address here...")
-                {
-                    fromAddress = computername;
-                }
-                else
-                {
-                    fromAddress = fromTextBox.Text;
-                }*/
             }
 
-            args = "-body \"" + bodyTextBox.Text + "\" -from \"" + fromAddress + "\" -to \"" +
-                recipientListString + "\" -subject \"" + subjectTextBox.Text + "\"";
+            args = $"-body \"{bodyTextBox.Text}\" -from \"{fromAddress}\" -to \"{recipientListString}\" -subject \"{subjectTextBox.Text}\"";
 
             if (fileList.Items.Count > 0)
             {
@@ -360,7 +344,6 @@ namespace Blat_Front_end
                     if (i < fileList.Items.Count - 1)
                         attachment += ", ";
                 }
-                //args += " -attach \"" + attachment + "\"";
                 args += $" -attach \"{attachment}\"";
             }
 
@@ -392,7 +375,7 @@ namespace Blat_Front_end
                 {
                     if (output != null)
                     {
-                        w.WriteLine("Command Run: blat.exe " + args);
+                        w.WriteLine($"Command Run: blat.exe {args}");
                         w.WriteLine();
                         w.WriteLine(output);
                     }
@@ -406,7 +389,7 @@ namespace Blat_Front_end
                 {
                     if (output != null)
                     {
-                        w.WriteLine("Command Run: blat.exe " + args);
+                        w.WriteLine($"Command Run: blat.exe {args}");
                         w.WriteLine();
                         w.WriteLine(output);
                     }
@@ -505,8 +488,7 @@ namespace Blat_Front_end
                         }
                         else
                         {
-                            mbmessage = "\"" + recipientAutoCompTextBox.Text +
-                                "\"\nhas already been added to the list of recipients";
+                            mbmessage = $"\"{recipientAutoCompTextBox.Text}\"\nhas already been added to the list of recipients";
                             mbcaption = "Error detected";
                             mbbuttons = MessageBoxButtons.OK;
                             result = MessageBox.Show(mbmessage, mbcaption, mbbuttons,
