@@ -8,3 +8,5 @@ Added a settings file (application configuration). 5 new settings. Edit *Blat_Fr
  - **UseDefaultFromEmailAddress:** use the specified "DefaultFromEmailAddress" value (true/false)
  - **DefaultFromEmailAddress:** set the value for use as the From email address (ex: jack@smith.com)
  - **DisableFromEmailAddressField:** Disables the From email address field text box (true = disabled/false = enabled)
+
+Also, create a `contacts.lst` file with first/last names and email addresses, and the emails will autocomplete as you type into the Recipient field. See the included `contacts.lst` file.
